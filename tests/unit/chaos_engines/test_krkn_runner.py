@@ -22,7 +22,8 @@ from krkn_ai.models.cluster_components import ClusterComponents
 class TestKrknRunnerInitialization:
     """Test KrknRunner initialization and runner type detection"""
 
-    def test_init_with_explicit_runner_type(self, minimal_config, temp_output_dir):
+    @patch("krkn_ai.chaos_engines.krkn_runner.env_is_truthy", return_value=True)
+    def test_init_with_explicit_runner_type(self, mock_env_is_truthy, minimal_config, temp_output_dir):
         """Test initialization with explicit runner type"""
         with patch("krkn_ai.chaos_engines.krkn_runner.create_prometheus_client"):
             runner = KrknRunner(
@@ -34,9 +35,10 @@ class TestKrknRunnerInitialization:
             assert runner.output_dir == temp_output_dir
             assert runner.runner_type == KrknRunnerType.CLI_RUNNER
 
+    @patch("krkn_ai.chaos_engines.krkn_runner.env_is_truthy", return_value=True)
     @patch("krkn_ai.chaos_engines.krkn_runner.run_shell")
     def test_init_detects_cli_runner(
-        self, mock_run_shell, minimal_config, temp_output_dir
+        self, mock_run_shell, mock_env_is_truthy, minimal_config, temp_output_dir
     ):
         """Test automatic detection of CLI runner when krknctl is available"""
         mock_run_shell.side_effect = [
@@ -47,9 +49,10 @@ class TestKrknRunnerInitialization:
             runner = KrknRunner(config=minimal_config, output_dir=temp_output_dir)
             assert runner.runner_type == KrknRunnerType.CLI_RUNNER
 
+    @patch("krkn_ai.chaos_engines.krkn_runner.env_is_truthy", return_value=True)
     @patch("krkn_ai.chaos_engines.krkn_runner.run_shell")
     def test_init_raises_when_no_runner_available(
-        self, mock_run_shell, minimal_config, temp_output_dir
+        self, mock_run_shell, mock_env_is_truthy, minimal_config, temp_output_dir
     ):
         """Test raises exception when neither krknctl nor podman is available"""
         mock_run_shell.side_effect = [
@@ -91,7 +94,7 @@ class TestKrknRunnerRun:
             assert isinstance(result.start_time, datetime.datetime)
             assert isinstance(result.end_time, datetime.datetime)
 
-    @patch("krkn_ai.chaos_engines.krkn_runner.env_is_truthy", return_value=False)
+    @patch("krkn_ai.chaos_engines.krkn_runner.env_is_truthy", return_value=True)
     @patch("krkn_ai.chaos_engines.krkn_runner.run_shell")
     def test_run_handles_misconfiguration_failure(
         self, mock_run_shell, mock_env, minimal_config, temp_output_dir
@@ -125,8 +128,9 @@ class TestKrknRunnerRun:
                 assert result.fitness_result.fitness_score == -1.0
                 assert result.fitness_result.krkn_failure_score == -1.0
 
+    @patch("krkn_ai.chaos_engines.krkn_runner.env_is_truthy", return_value=True)
     def test_run_raises_for_unsupported_scenario_type(
-        self, minimal_config, temp_output_dir
+        self, mock_env_is_truthy, minimal_config, temp_output_dir
     ):
         """Test run raises NotImplementedError for unsupported scenario type"""
         minimal_config.health_checks = HealthCheckConfig()
@@ -146,7 +150,8 @@ class TestKrknRunnerRun:
 class TestKrknRunnerCommandGeneration:
     """Test command generation methods"""
 
-    def test_runner_command_for_cli_runner(self, minimal_config, temp_output_dir):
+    @patch("krkn_ai.chaos_engines.krkn_runner.env_is_truthy", return_value=True)
+    def test_runner_command_for_cli_runner(self, mock_env_is_truthy, minimal_config, temp_output_dir):
         """Test runner_command generates correct CLI command format"""
         minimal_config.wait_duration = 60
         minimal_config.kubeconfig_file_path = "/tmp/kubeconfig"
@@ -166,7 +171,8 @@ class TestKrknRunnerCommandGeneration:
             assert "--wait-duration 60" in command
             assert "/tmp/kubeconfig" in command
 
-    def test_runner_command_for_hub_runner(self, minimal_config, temp_output_dir):
+    @patch("krkn_ai.chaos_engines.krkn_runner.env_is_truthy", return_value=True)
+    def test_runner_command_for_hub_runner(self, mock_env_is_truthy, minimal_config, temp_output_dir):
         """Test runner_command generates correct podman command format"""
         minimal_config.wait_duration = 60
         minimal_config.kubeconfig_file_path = "/tmp/kubeconfig"
@@ -186,7 +192,8 @@ class TestKrknRunnerCommandGeneration:
             assert "--net=host" in command
             assert "/tmp/kubeconfig" in command
 
-    def test_graph_command_creates_json_file(self, minimal_config, temp_output_dir):
+    @patch("krkn_ai.chaos_engines.krkn_runner.env_is_truthy", return_value=True)
+    def test_graph_command_creates_json_file(self, mock_env_is_truthy, minimal_config, temp_output_dir):
         """Test graph_command creates JSON file for composite scenario"""
         minimal_config.kubeconfig_file_path = "/tmp/kubeconfig"
 

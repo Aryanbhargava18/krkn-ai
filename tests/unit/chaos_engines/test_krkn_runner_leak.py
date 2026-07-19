@@ -8,11 +8,12 @@ from krkn_ai.models.config import ConfigFile, FitnessFunction, HealthCheckConfig
 
 
 class TestKrknRunnerThreadLeak(unittest.TestCase):
+    @patch("krkn_ai.chaos_engines.krkn_runner.env_is_truthy", return_value=True)
     @patch("krkn_ai.chaos_engines.krkn_runner.create_prometheus_client")
     @patch("krkn_ai.chaos_engines.krkn_runner.HealthCheckWatcher")
     @patch("krkn_ai.chaos_engines.krkn_runner.run_shell")
     def test_run_shell_exception_cleanup(
-        self, mock_run_shell, mock_watcher_cls, mock_create_prom
+        self, mock_run_shell, mock_watcher_cls, mock_create_prom, mock_env_is_truthy
     ):
         # Setup mocks
         mock_watcher = MagicMock()
@@ -58,6 +59,7 @@ class TestKrknRunnerThreadLeak(unittest.TestCase):
         # Verification
         print("[VERIFY] Checking if HealthCheckWatcher.stop() was called...")
 
+        # Assert that stop was called
         # Assert that stop was called
         mock_watcher.stop.assert_called_once()
         print("[SUCCESS] stop() WAS called. Thread leak prevented.")
