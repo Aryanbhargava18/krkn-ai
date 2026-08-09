@@ -142,7 +142,9 @@ class FitnessCalculator:
 
         return FitnessResult(fitness_score=overall_score, scores=results)
 
-    def calculate_point_fitness(self, start, end, query):
+    def calculate_point_fitness(
+        self, start: datetime.datetime, end: datetime.datetime, query: str
+    ) -> float:
         """Takes difference between fitness function at start/end intervals of test.
         Helpful to measure values for counter based metric like restarts.
         """
